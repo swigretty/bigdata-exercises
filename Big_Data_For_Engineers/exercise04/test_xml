@@ -1,0 +1,6 @@
+<exercise>
+<animal>My dog is named "Lilou"</animal>
+<animal>My dog is named &quot; Lilou &quot;</animal>
+<animal>My dog is named &apos; Lilou &apos;</animal>
+</exercise>
+
