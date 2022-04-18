@@ -1,0 +1,73 @@
+%! Author = gianna
+%! Date = 18.04.22
+
+
+\section{Week5}
+\subsection{JSON}
+
+    \begin{lstlisting}
+        {  "firstName": "John",
+  "lastName": "Smith",
+  "isAlive": true,
+  "age": 25,
+  "some_array": [3.2, true, "This is a list", {"foo: false}]
+  "address": {
+    "streetAddress": "21 2nd Street",
+    "city": "New York",
+    "state": "NY",
+    "postalCode": "10021-3100",
+    "is verified" : null
+  }
+}
+    \end{lstlisting}
+
+\begin{itemize}
+    \item key is always a string (double quotes),
+    \item keys are unique within one object
+    \item keys can have a space in it, however not best practice
+    \item Object: {"key": "this is a string"}
+    \item Empty object are valid: {}
+    \item No trailing commas: {"key": "this is a string",}
+    \item New: can start with any value: an object, array, bool, number, string
+\end{itemize}
+
+Nested table:\\
+    \begin{lstlisting}
+
+{"product" : "Phone",
+"orders" : [
+{ "customer" : "John", "quantity" : 1 },
+{ "customer" : "Peter", "quantity" : 2 },
+{ "customer" : "Mary", "quantity" : 2 }
+]
+}
+\end{lstlisting}
+
+\subsection{XML}
+
+    \begin{lstlisting}
+
+    element: <catalog> </catalog>
+    opening tag: <catalog>
+    closing tag: </catalog>
+    empty tag: <catalog/>
+
+    Text declaration: <?xmlversion="1.0" encoding="UTF-8"?>
+    Attributes: <a attr="value"/>
+    Text: <a>This is text </a>
+    Comment: <!-- This is a comment -->
+    \end{lstlisting}
+
+    \begin{tabular}{ c c c c}
+    & Top-level & Between Element Tags & Inside Opeining Element Tag \\
+Elements& once & yes& no \\
+Attributes & no & no & yes \\
+Test & no & yes & no\\
+\end{tabular}
+
+
+
+
+    
+
+

@@ -1,0 +1,88 @@
+\section{Massive Parallel Processing}
+
+\subsection{MapReduce (first generation)}
+\begin{itemize}
+    \item Parallelism and Batch processing: Batch (=shard) of data is processed at same time by different workers
+    \item Shards: dataset in hdfs is devided into parts (different fiels)
+    \item ideal case: 1 shard, 1 query, 1 output shard but usually not psossible: at some places map here, shuffle there
+\end{itemize}
+
+\subsection{MapReduce data processing}
+\begin{itemize}
+    \item input data (key-value pairs)
+    \item Map: parallel
+    \item Shuffle: intermediate data (key-value pairs)
+    \item Reduce: in parallel
+    \item output data (key-value pairs)
+    \item Data type: key and value type may differ betwen input, intermediate, and output data (ususally intermediata and output are the same)
+
+\end{itemize}
+\subsubsection{Logical}
+\begin{itemize}
+    \item input data (billions of key value pairs) is split into splist (shards) 
+    (data can be on HBase, Relational database)
+    \item mapping function defines how one key-value pair is porcessed and generated one or more key-value pairs
+    \item shuffle: combine, sort-by key,
+    \item partition again (same key end up in same partition)
+    \item reduce function operates on all the rows with same keys and output one value per key (aggregate)
+\end{itemize}
+
+\subsubsection{Architecture version 1}
+\begin{itemize}
+    \item several TBs of data
+    \item 1000 of nodes
+    \item Central Machine: Job Tracker, Wokers  are called Task Tracker.
+    \item Same concept as HBase: Task Trackers are same machines as Datanodes \textrightarrow allows for shortcircuiting
+    i.e. bring the query to the data.
+    \item one split per block:
+    \begin{itemize}
+        \item one map task pe split (usually cpu core of the same machine the split is located)
+        \item occacionally colocation not possible: has to go to another datanode (over the namenode) to get a split
+        \item intermediate key value pairs are stored in memory are spilled to disk if necessary. Log-Structured Merge-Trees
+        i.e. playing the 2048 game
+        \item shuffling phase: Need to go from mapper M to reducer R. Intermediate key values ae available for the reducer to fetch them
+        All Rs connect to all the Ms to get the intermediate key valueas. Data transferred over network.
+        \item reducing: output key values are witten to hdfs, i.e. disk. Every reducer writes to 1 file ?
+    \end{itemize}
+\end{itemize}
+
+\subsubsection{Input Output formats}
+\begin{itemize}
+    \item from to tables
+    \begin{itemize}
+        \item RDBMS and HBase: can be an input to map reduce.
+        \item need to get key-value pairs: use primary key as key and all of the rest of the row as a value
+    \end{itemize}
+    \item from to files
+    \begin{itemize}
+        \item Text: every line of text is a key value pair. Use the offset (number of char since the beginning of the file)
+        as key. And the text on the line as the value. Can group the lines into to lines per key value.
+        Altenatively, if there is a separator present, left of char is key, value us right to the separator
+        \item sequence files: collection of key-value pairs (like HFiles, natively a sequence of key-value pairs).
+    \end{itemize}
+\end{itemize}
+
+\subsubsection{counting words example}
+\begin{itemize}
+    \item Map the data to key-value pairs. key: char since beginning, val: text in this line
+    \item Map function: Every word get's a key and value is the count
+    of the word. (one key-value pair mapped to several key-value pairs)
+    \item reduce function: Group by key and sum the counts.
+\end{itemize}
+\subsubsection{filtering lines example}
+All the lines that contain either lorm or amet
+\begin{itemize}
+    \item Map function: Every line look wether its present. Intermediate keys are just the lines that contain the words,
+    i.e. they are the same as the input key-values. All other are throwed away.
+    \item reduce function is just the identity function.
+    \item similar to selection (where clause of SQL):
+\end{itemize}
+\subsubsection{Projection}
+All the lines that contain either lorm or amet
+\begin{itemize}
+    \item Map function: needs to parse the text (i.e. json) and only outputs the coloumn that are projected
+\end{itemize}
+
+
+
+
