@@ -78,10 +78,64 @@ All the lines that contain either lorm or amet
     \item similar to selection (where clause of SQL):
 \end{itemize}
 \subsubsection{Projection}
-All the lines that contain either lorm or amet
+All the lines that contain either lorem or amet
 \begin{itemize}
     \item Map function: needs to parse the text (i.e. json) and only outputs the coloumn that are projected
 \end{itemize}
+In theory it's possible to implement SQL with map reduce. (Foreign Data Wrapper)
+
+\subsection{Optimization}
+Counting: Mapping wiht keys being the workds and number 1 as the value.
+How to reduce the data that is shuffled?
+\begin{itemize}
+    \item can start shuffeling as soon as some intermediate data is ready
+    \item data is sent over the network in batches
+    \item send less data: combine, i.e. sum the data with same keys (intermediate sum)
+    \begin{itemize}
+        \item When combine: when you flush to disk, when compacting (cannot assume anything with map reduce)
+        \item combine function: is most of the time the same as the reduce function namly when:
+        \begin{itemize}
+            \item keys or intermediate data is the same as output keys
+            \item the reduce function must be commutative (1+2 = 2+1) and assotative ((1+2)+3 = 1+(2+3)),
+            e.g. sum, count, min, max (not avg.)
+        \end{itemize}
+    \end{itemize}
+\end{itemize}
+Combine optimization: Bring the query to the data (push down).
+The machine that is in charge of reducing connects to the machine that contains the key-values of the keys it is
+responsible for.
+Central asigning the keys to the worker machines.
+
+\subsection{Slots, Tasks, Functions}
+Don't use mapper, reducer, combiner: map slots, reduce slots, map task, reduce task, mapping function, reducing function
+
+\subsubsection{Functions (mathematical object):}
+\begin{itemize}
+    \item Map function: as input gets 1 key-value pair, output: 0 or more intermediate key-value pairs
+    \item Reduce function: one or more key-value pairs as an input and outputs 0, 1 or more key-value pairs.
+    \item Combine function: same as reduce
+\end{itemize}
+
+\subsubsection{Task (assignement)}
+
+\begin{itemize}
+    \item map task: call map function on a group (=batch) of key-value pairs. Calling map function sequentially, 1 core.
+    \item Reduce task: call reduce function on several groups (=batches) of intermediate key-value pairs.
+    Sequentially each group (=batch) is processed. Due to shuffling a key can only appear in one task ?
+    \item Combine task: does not exist. only done when flushing. Combine function can be seen as part of map task
+\end{itemize}
+
+
+\subsubsection{Slot}
+1 cpu core.  Sequential execution of tasks done by a slot.
+\begin{itemize}
+    \item map slot: executes map tasks
+    \item Reduce slot: dito
+    \item Combine slot:
+\end{itemize}
+
+
+
 
 
 
