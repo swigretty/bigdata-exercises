@@ -1,4 +1,8 @@
 \section{Massive Parallel Processing}
+Parallelized IO (read/write from/to hdfs) but we pay for that with
+the need for shuffeling, i.e. communication overhead.
+Map reduce is good for throughput limited applications.
+If data fits in single file on single machine, no benefit of using map reduce.
 
 \subsection{MapReduce (first generation)}
 \begin{itemize}
@@ -133,6 +137,13 @@ Don't use mapper, reducer, combiner: map slots, reduce slots, map task, reduce t
     \item Reduce slot: dito
     \item Combine slot:
 \end{itemize}
+
+Reduce task won't start before the map tasks have finished.
+
+
+
+
+
 
 
 
