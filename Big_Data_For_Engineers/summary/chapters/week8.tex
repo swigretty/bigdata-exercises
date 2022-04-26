@@ -137,10 +137,33 @@ Don't use mapper, reducer, combiner: map slots, reduce slots, map task, reduce t
     \item Reduce slot: dito
     \item Combine slot:
 \end{itemize}
-
+Parallelism comes from several number of slots.
 Reduce task won't start before the map tasks have finished.
 
 
+\subsubsection{Split and Blocks}
+A split is not exactly a block on HDFS since block size is strictly bounded in size (i.e. 128MB) and you will
+end right in the middle of a key-value pair.
+A split is roughly one hdfs block (physical level).
+HDFS blocks only sees 0 and 1. Split is a whole number of records.
+Map task corresponds to one split: block should lie on same datanode as the map task being processed. But the few
+bits that are in the next block might be requested from another machine.
+
+
+\subsection{Improvement to Map Reduce: Yarn}
+Not covered in exam.
+JobTracker: Bottleneck (fault tolerant, resource managment, etc.). Scheduling and Monitoring
+With this architecture: It's hard to go being 4000 nodes and 40000 tasks.
+
+Waste of resources: during map phase: reduce slots are idel. and all map slots idle when reduce slots are working.
+\textrightarrow Yarn.
+ResourceManagter purely responsible for Resource managing. Will allocate a container, the application master
+to find containers to execute your map reduce tasks of your map reduce job.
+Application master is on a datanode and will ask for container
+from Resource managing. \\
+Spearation between scheduling (Scheduling and Application management done by resource manager) and monitoring (application master)
+\textrightarrow multi-tenancy. Availability and scaleability. \\
+Yarn can not only do map reduce: But also DAG processing (Spark) etc.
 
 
 

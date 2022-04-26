@@ -1,0 +1,96 @@
+\usepackage{textcomp}\section{Massive Parallel Processing II: Spark}
+
+
+\subsection{Map Reduce to DAG}
+Directed acyclic graph. (causal dependency graph)
+
+\subsection{RDD}
+Resilient Distributed Dataset: BIG collection of anything (not necessarily a key-value pair), which is partitioned.
+
+RDD lifecycle:
+\begin{itemize}
+    \item Creation: From HDFS, S3, Local file system, on the fly
+    \item Transformation: Turn RDD into RDD (like map and reduce in map reduce but any transformation)
+    \item Action: Output on screen, HDFS, S3, Local file system.
+\end{itemize}
+If I do not have an action, nothing is going to happen. Computation only get's triggered by Action.
+
+\subsection{Execution}
+\begin{itemize}
+    \item use a shell (python or scala shell)
+    \item Applications
+\end{itemize}
+
+\subsection{Transformation}
+\begin{itemize}
+    \item Filter: Order matters. function just says yes or no
+    \item Map: for every input values output is one value
+    \item flatmap: For every input value output is one, zero or more values. (close to map reduce map). loose information
+    of origin of value.
+    \item distinct: checks for equality of values only ouputs distinct values (spaghetti structure)
+    \item sample: random filter
+\end{itemize}
+Transformation on 2 RDD:
+\begin{itemize}
+    \item Union: preserves order
+    \item Intersection: Values that are in left and right rdd
+    \item subtract: all values in left but not in right
+    \item cartesion product: All possible pairs
+\end{itemize}
+
+
+
+\subsection{Action}
+\begin{itemize}
+    \item Collect: download everything on cluster and accumulated into local list on computer. only works
+    if RDD is small enough.
+    \item count: in parallel. Number of values
+    \item count by value: number of same values returns small value pairs. If all values unique still huge output
+    \item take: only downloads the first x values
+    \item top: last x values
+    \item takeSample: downloads random sample
+    \item reduce: applies some binary operation on values. If operation commutative and associative can be done in parallel
+    Here not pairs but single vaues (in contrast to map reduce)
+\end{itemize}
+
+\subsection{Pair RDDs}
+\begin{itemize}
+    \item Transformations
+    \begin{itemize}
+        \item keys
+        \item values
+        \item reduce by key (corresponds to reduce from map reduce): For every distinct key reduce function applied
+        \item group by key: group key-value with same key \textrightarrow key with value being the list of values
+        \item sort by key
+        \item map values: applies function to every value in key-value pair. Don't care about keys.
+        \item join: put together the keys that are the same.
+        All the possible combination of the values. Cartesian product within the key.
+        \item subtract by key: only return if key is not in the right one
+    \end{itemize}
+    \item Actions
+    \begin{itemize}
+        \item count by key
+        \item lookup: value which is associated with specific key
+    \end{itemize}
+\end{itemize}
+
+Three main differences to Map reduce:
+\begin{itemize}
+    \item values can be of any datatypes. don't need to use key-values in spark
+    \item generic DAG
+    \item More different transformation not just map and reduce
+\end{itemize}
+
+
+\subsection{Physical Layer of spark}
+Parallel execution: defalut one task per hdfs block
+
+Rdd1 \textrightarrow
+
+Machine, Executor (container), Core
+
+One container ((executor)) can have several tasks:
+one core sequential execution of tasks. whenever one is finished gets next task
+
+
+
