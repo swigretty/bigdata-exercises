@@ -165,8 +165,20 @@ Spearation between scheduling (Scheduling and Application management done by res
 \textrightarrow multi-tenancy. Availability and scaleability. \\
 Yarn can not only do map reduce: But also DAG processing (Spark) etc.
 
-
-
+\subsection{Quizz}
+\begin{itemize}
+    \item Question1: Map reduce works with key-value pairs but input can be in many different format,
+    (text, binary, tables, Json). How is the input converted to key-value pairs
+    \item Answer1: there is a natural form: e.g in HBase the rowID acts acts as a key and the Row as a value
+    \item Question2: What issue did YARN solve
+    \begin{itemize}
+        \item Answer2.1: Map slots and reduce slots are statically assigned before the job starts
+        and hence are often idle and might lead to suboptimal number of reducers
+        \item Answer2.2: bottelneck on the JobTracker, which has to do both scheduling and monitoring
+    \end{itemize}
+    \item Do the keys of Map reduce be atomic: They can be about any java objectio but need to tell map reduce on how to sort them
+    (comparator). Also how to hash (i.e. how to partition). Then your key can be anything.
+\end{itemize}
 
 
 

@@ -6,6 +6,7 @@ Directed acyclic graph. (causal dependency graph)
 
 \subsection{RDD}
 Resilient Distributed Dataset: BIG collection of anything (not necessarily a key-value pair), which is partitioned.
+Resilient (dataset can be reproduced)
 
 RDD lifecycle:
 \begin{itemize}
@@ -83,14 +84,108 @@ Three main differences to Map reduce:
 
 
 \subsection{Physical Layer of spark}
-Parallel execution: defalut one task per hdfs block
+Parallel execution: default one task per hdfs block
 
 Rdd1 \textrightarrow
 
-Machine, Executor (container), Core
+\begin{itemize}
+    \item Hierarchy: Machine, Executor (container), Core
+    \item One container ((executor)) can have several tasks:
+one core sequential execution of tasks. whenever one is finished gets next task. Cores in one executor share memory
+    \item Parallelism is across cores. 1 Core = 1 slot.
+    \item 1 task corresnponds to input parition: every value in a task is transformed sequentially.
+    (several values per task). Same as in map reduce where several key-values are squentially processed in the same task.
+    This is only possible for narrow dependency transformations.
+    \item Can specifiy number of executors, memory per executors, etc: spark-submit --num-executors 42 --executor-memory 5GB
+    --executor-cores 2 my-application.jar \textrightarrow 84 slots (tasks that can be executed in parallel)
+\end{itemize}
 
-One container ((executor)) can have several tasks:
-one core sequential execution of tasks. whenever one is finished gets next task
+\subsection{Terminology}
+Narrow Dependency: Transaformations where data stays on same machine. Can spread all over cluster.
+No comunication needed between machines. \\
+Wide Dependency: one output needs whole input. \textrightarrow shuffle
+Whenever there is shuffeling there is a new stage. (narrow dependency can squeez transformations into same stage)\\
+\begin{itemize}
+    \item Logical vertical grouping of narrow transformation into stages
+    \item Stages are physically split into task.
+    \item Sequence of stages is a Job.
+\end{itemize}
+
+\subsection{Performance}
+\begin{itemize}
+    \item Persisting RDD: if we want to reuse the output of a specific stage
+    \item Avoid a wide dependency: pre-partitioning when you want to do a group by. Alrady have same group on same machine.
+\end{itemize}
+
+\subsection{DataFrames}
+\begin{itemize}
+    \item if values of RDD are a collection of rows \textrightarrow Dataframe. (keys only need to be stored once and is hence more compact)
+    \item column storage of Dataframe: spark can drop columns if they are not needed in transformations
+    \item spark will infer schema automatically when e.g. json input
+    \item SparkSQl very similar to PostgressSQL
+\end{itemize}
+
+\subsubsection{Schema inference}
+\begin{itemize}
+    \item dataframe are more generic than tables (allow nestedness) but they need a schemas. They need to be validatable
+    \item dataframe transformation can be used instead to use SQL (but transformations are not exactly the same as the RDD transformation.)
+    gives you more control over the transformations.
+    \item spakr will infer schema for csv, json etc. (will not always work)
+    \item will not need to infrer schema for parquetn (since already inherent)
+    \item can also connect to relational database and read other data format such as avro.
+    \item datatypes: very similar to json, xml etc.
+\end{itemize}
+
+\subsection{Quizt}
+1TB of json data with spark using RDD and pyspark. It is slow to execute:
+\begin{itemize}
+    \item use dataframe and SparkSQL
+    \item Use parquet instead of json. Conversion done by either reading from json and write to parquet, spark will
+    figure out schema. Other way: Rumble db and jsound (define schema)
+\end{itemize}
+
+\subsection{SparkSQLDialect}
+\begin{itemize}
+    \item sortby: sorts data only within partition
+    \item distribute by country: all data with same country will end up on same machine
+    \item or combination sortby and distribute by: cluster by (slightly less powerfull than order by since not overall sorted)
+    \item groupby, orderby: need shuffles (wide transformations)
+\end{itemize}
+
+
+\subsection{Limits}
+\begin{itemize}
+    \item Nestedness: can use Explode to create duplicated row for every value in an array
+    \item Heterogneity: if can't extrct data type will use a string.
+\end{itemize}
+
+\subsection{Quiz}
+\begin{itemize}
+    \item Let increase amount of data to petabytes. number of machines to thousands what start happening:
+    A few nodes will keep taking significantly more time than average to complete the execution of their task.
+    This is called tail latency.
+\end{itemize}
+
+
+
+\section{Performance at Large Scale}
+\subsection{sources of bottleneck}
+\begin{itemize}
+    \item memory
+    \item cpu:
+    \item disk I/O: map reduce and spark where created for this bottleneck.
+    \item network IO (shuffling)
+\end{itemize}
+
+\subsubsection{latencies}
+\begin{itemize}
+    \item cpu: 1ns
+    \item memory or : 100 of micro seconds
+    \item reading from disk: mili seconds (up to 270 MB/s for SSD)
+    \item network across continent: 100 of ms (up to 100 Gbits/s)
+\end{itemize}
+
+
 
 
 
