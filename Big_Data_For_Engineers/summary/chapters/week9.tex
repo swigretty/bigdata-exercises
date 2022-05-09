@@ -56,7 +56,7 @@ Transformation on 2 RDD:
 
 \subsection{Pair RDDs}
 \begin{itemize}
-    \item Transformations
+    \item Transformations (creates a new RDD from an existing one)
     \begin{itemize}
         \item keys
         \item values
@@ -68,7 +68,7 @@ Transformation on 2 RDD:
         All the possible combination of the values. Cartesian product within the key.
         \item subtract by key: only return if key is not in the right one
     \end{itemize}
-    \item Actions
+    \item Actions: compute result based on an RDD, either return to driver program or save it to an external storage system
     \begin{itemize}
         \item count by key
         \item lookup: value which is associated with specific key
@@ -184,6 +184,32 @@ Whenever there is shuffeling there is a new stage. (narrow dependency can squeez
     \item reading from disk: mili seconds (up to 270 MB/s for SSD)
     \item network across continent: 100 of ms (up to 100 Gbits/s)
 \end{itemize}
+
+
+\subsection{Excercis08}
+How to do count distinct key, since not possible to do in one map reduce job.
+Use a reduce function that outputs keys but then still need to count those.
+If you chain map reduce tasks, you are always writing and reading to/from disk \textrightarrow Spark with DAG
+one spark job can have several map reduce operation without writing to disk \textrightarrow RDD
+RDD are a immutable distributed colelction of objects.
+
+
+\subsubsection{execution}
+The following phases occur during Spark execution:
+\begin{itemize}
+    \item User code defines a DAG (directed acyclic graph) of RDDs. Operations on RDDs create new RDDs that refer back to their parents, thereby creating a graph.
+    \item Actions force translation of the DAG to an execution plan. When you call an action on an RDD, it must be computed. This requires computing its parent RDDs as well.
+    \item Spark's scheduler submits a job to compute all needed RDDs. That job will have one or more stages, which are parallel waves of computation composed of tasks. Each stage will correspond to one or more RDDs in the DAG. A single stage can correspond to multiple RDDs due to pipelining.
+    \item Tasks are scheduled and executed on a cluster
+    \item Stages are processed in order, with individual tasks launching to compute segments of the RDD. Once the final stage is finished in a job, the action is complete.
+\end{itemize}
+
+
+
+
+
+
+
 
 
 
