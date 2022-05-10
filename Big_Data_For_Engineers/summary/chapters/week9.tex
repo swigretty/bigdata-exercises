@@ -164,25 +164,13 @@ Whenever there is shuffeling there is a new stage. (narrow dependency can squeez
     \item Let increase amount of data to petabytes. number of machines to thousands what start happening:
     A few nodes will keep taking significantly more time than average to complete the execution of their task.
     This is called tail latency.
-\end{itemize}
-
-
-
-\section{Performance at Large Scale}
-\subsection{sources of bottleneck}
-\begin{itemize}
-    \item memory
-    \item cpu:
-    \item disk I/O: map reduce and spark where created for this bottleneck.
-    \item network IO (shuffling)
-\end{itemize}
-
-\subsubsection{latencies}
-\begin{itemize}
-    \item cpu: 1ns
-    \item memory or : 100 of micro seconds
-    \item reading from disk: mili seconds (up to 270 MB/s for SSD)
-    \item network across continent: 100 of ms (up to 100 Gbits/s)
+    \item What is the issue with assigning one task to each slot (map reduce and spark): some task may take longer so that
+    most slots will be idel waiting for the last one to complete.
+    \item What do MapReduce 2 and Spark have in common: They are based on Yarn
+    \item How does a document store likle MongoDB store documents physically: As an optimized binary form (BSON) on the
+    local hard drive. JSON types arrays and objects are efficiently stored and basic atomic types are supported.
+    Why Binary: Needs less space, can use compression. Less time to read from the disk.
+    No repetetion of keys in parquet.
 \end{itemize}
 
 
@@ -206,6 +194,86 @@ The following phases occur during Spark execution:
 
 
 
+
+\section{Performance at Large Scale}
+\subsection{sources of bottleneck}
+\begin{itemize}
+    \item memory
+    \item cpu:
+    \item disk I/O: map reduce and spark where created for this bottleneck.
+    \item network IO (shuffling)
+\end{itemize}
+
+\subsubsection{latencies}
+\begin{itemize}
+    \item cpu: 1ns
+    \item memory or : 100 of micro seconds
+    \item reading from disk: mili seconds (up to 270 MB/s for SSD)
+    \item network across continent: 100 of ms (up to 100 Gbits/s)
+\end{itemize}
+
+
+\subsubsection{Response time}
+Total response time = Latency + Transfer
+
+\begin{itemize}
+    \item speedup = (respond_time_old/respnse_time_new)
+    \item in reallity: speedup = $\frac{1}{1-p+\frac{p}{s}}$
+    \begin{itemize}
+        \item Ambdahl's law: percent parallelizable, speedup of 2 on parallelizable part. \textrightarrow speedup = 1.18 = $\frac{1}{a-0.3+\frac{0.3}{2}}$
+        \item Gustafson's law: $Speedup= 1-p+sp$
+    \end{itemize}
+\end{itemize}
+
+
+\subsubsection{spark tuning}
+\begin{itemize}
+    \item avodi memory scale-up: look for the classes athat are intitiated very often
+    \item avoid cpu scale-up: search for gigantic for-loops (e.g map)
+    \item avoid disk io scale-up: ue efficient format, compression
+    \item Avoid network io scale-up: push down! pre-filter aggergate before, pre-project before shuffling.
+    \item
+\end{itemize}
+
+One would not do 1 excecutor per machine but also not with each core = 1 executor but somewhwer in between.
+I.e. 3 Excecutors with each 5 cores. anc 30GB of shared memory.
+Rather than 15 executors with 1 core and 100/15GB of memory each.
+Or 1 executor with 15 cores and 100GB of shared memory.
+
+10 times more task than slots is optimial (so better distribution of tasks across slots) but not a lot more, since then latency increases as well
+
+\subsubsection{relativistic effect}
+1 slot will take an enourmous amount of time \textrightarrow tail latency
+\begin{itemize}
+    \item duplicate all your tasks. First done wins (hedge requests)
+    \item deferred hedge requests: wait until one tasks takes much longer than expected than re-exicute on another machine
+\end{itemize}
+
+
+
+\section{Document Stores: NoSQL}
+\begin{itemize}
+    \item Tabular integrity = Relational integrity. domain integrity ensured by schemas.
+    \item NosQL: can also  skip validation.
+    \item Designed for collections of trees i.e. json or xml. Huge collection of small trees (one tree a few KB maybe a few MB)
+    \item Are not good at doing joins but good at projection, selection and aggregation.
+    \item Validation after data was populated
+\end{itemize}
+
+Bson binary encoding of JSON. Has added some datatypes: datetimes, objectID
+
+\subsection{Querying a Document Store}
+
+
+\begin{lstlisting}
+    -Need to ETL data into database not a datalake.
+    -API low level: Create read, update, delete (CRUD)
+    -find() (Select *)
+    -Filter: find({'key': value}) (Where key= values)
+    -project: find({'key': 1})  or if you want to drop it find({'key': 0}) (Select key)
+    -find({"$or": [{"key": value}, {"key": value}]})
+    - query for a missing value: null (IS NULL)
+\end{lstlisting}
 
 
 
