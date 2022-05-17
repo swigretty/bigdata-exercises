@@ -220,7 +220,8 @@ Total response time = Latency + Transfer
     \item speedup = (respond_time_old/respnse_time_new)
     \item in reallity: speedup = $\frac{1}{1-p+\frac{p}{s}}$
     \begin{itemize}
-        \item Ambdahl's law: percent parallelizable, speedup of 2 on parallelizable part. \textrightarrow speedup = 1.18 = $\frac{1}{a-0.3+\frac{0.3}{2}}$
+        \item Ambdahl's law: percent parallelizable, speedup of 2 on parallelizable part.
+        \textrightarrow speedup = 1.18 = $\frac{1}{a-0.3+\frac{0.3}{2}}$
         \item Gustafson's law: $Speedup= 1-p+sp$
     \end{itemize}
 \end{itemize}
@@ -266,20 +267,85 @@ Bson binary encoding of JSON. Has added some datatypes: datetimes, objectID
 
 
 \begin{lstlisting}
-    -Need to ETL data into database not a datalake.
-    -API low level: Create read, update, delete (CRUD)
-    -find() (Select *)
-    -Filter: find({'key': value}) (Where key= values)
-    -project: find({'key': 1})  or if you want to drop it find({'key': 0}) (Select key)
-    -find({"$or": [{"key": value}, {"key": value}]})
-    - query for a missing value: null (IS NULL)
+-Need to ETL data into database not a datalake.
+(updating easier in databases compared to datalake)
+-API low level: Create read, update, delete (CRUD)
+-find() (Select *)
+-Filter: find({'key': value}) (Where key= values)
+-project: find({'key': 1})
+or if you want to drop it find({'key': 0}) (Select key)
+-find({"$or": [{"key": value}, {"key": value}]})
+- query for a missing value: null (IS NULL)
+\end{lstlisting}
+
+Why at all using spark?
+\begin{itemize}
+    \item scalability (although scalability of mongodb has improved)
+    \item no need to import (mongodb need to create bson)
+\end{itemize}
+
+\subsection{Architcture}
+\begin{itemize}
+    \item Replicate
+    \item Shard (one shard is a replica set, ie. 3 times F-P documents). Per replica set we hava a main and 2 secondary machines
+    \item Conrfirm
+    \item Indices: takes time
+    \begin{itemize}
+        \item There are Point (return one row),
+        non  highly-filtering (output a lot of rows based on value being = x), range queries
+        \item Hash indices:
+        \begin{itemize}
+            \item index on col1: hash value of col1 indicates position within the index array.
+            One elment of the index array: col1 value, pointers to the data.
+            \item Limitations: there are hash collitions two inputs will give you same output
+        (i.e. position),need to have a lot of empty positions in order to avoid this. Also no range indices.
+            \item for point, non  highly-filtering lookup super fast
+        \end{itemize}
+        \item B+ tree
+        \begin{itemize}
+            \item Actual values only at the leaves, and hence values all at same depth.
+            \item limited number of allowed children (min and max). It is fine if the root has less.
+            \item 3 childern have 2 keys (comparison keys). 4 children have 3 keys. At most 3 children = at most 2 elements
+            \item The more values I add the depth is going to increase
+            \item everything before on the left, everything after on the right (dictionary = binary search).
+            Logarithmic lookup time.
+            \item If you don't repeat the values it is a B-tree, i.e. don't have the constraint to have all the values in the leaves
+            \item id field will always have a tree index on it.
+            \item if you query without index, filtering is done in memory. with index will only read
+            the needed parts from disk
+        \end{itemize}
+    \end{itemize}
+\end{itemize}
+
+Example Tree Index: 3 to 5 children:
+\begin{lstlisting}
+[1,2,3,4]
+4: {child1: [1,2,3], child2: [4,5]}
+4, 7: {child1: [1,2,3], child2: [4,5,6], child3: [7, 8]}
 \end{lstlisting}
 
 
+\begin{lstlisting}
+db.collection.createIndex({"col1": 1})
+# 1 for ascending, -1 for descending
+db.collection.find({"col1":  {$gte: 19}})
+db.collection.createIndex({"col1": "hash"}), for hash indexing
+db.collection.createIndex({"col1": 1, "col2":1, "col3":1}) implies
+db.collection.createIndex({"col1": 1, "col2":1}) implies
+db.collection.createIndex({"col1": 1}) (hence no need to set those)
+\end{lstlisting}
 
 
+Summary:
+\begin{itemize}
+    \item between spark and sql
+    \item like sql: indixes, update
+    \item unlike sql: does not need a schema
+    \item low level queries.
+\end{itemize}
 
-
-
-
+\section{Querying trees}
+JSONIQ (analogous to xquery). Declarative functional and .... language\\
+Python is a imperative language, you can modify values.
+Exam: GitHub archive
 
