@@ -345,7 +345,35 @@ Summary:
 \end{itemize}
 
 \section{Querying trees}
-JSONIQ (analogous to xquery). Declarative functional and .... language\\
+JSONIQ (analogous to xquery but for qson).
+Declarative functional language like any querying language should be. Leave the detail up to the data.
+A for loop in jsoniq is not a sequence of instructions but a concatination. \\
 Python is a imperative language, you can modify values.
 Exam: GitHub archive
+
+\subsection{Data Model}
+sQL manipulates tables. JSONiq manipulates sequences of items. (i.e. a table is a sequene of items).
+Sequence can be heterogeneous. Sequence are flat cannot nest in contrast to arrays or lists. (Cannot have a sequence within a sequence).
+Sequence can be denormalized. The sequence of one item is the same as the item.
+Items can be atomic items, obejcts, array, functions.
+When querying, in and output is a sequence. \\
+json-doc: reads sequence of one object.
+unwrapping an array returns a seuqnce (with \[\]) \\
+Sequences and variables are immutable.
+
+\subsection{Construction}
+use json. same datatypes. Sequence of items, can just have comma between items don't need to put in an object like in json.
+
+
+\subsection{FLWOR Expression}
+
+For, Let, Where, Orderby,
+
+Let: bind a var. to a value. (not an assignement will not modify the var) \\
+For: bind var to sequence:
+\begin{lstlisting}
+    for $x in 1 to 10
+    return {"number": $x, "square": $x * $x
+\end{lstlisting}
+
 
